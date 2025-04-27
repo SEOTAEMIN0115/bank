@@ -1,0 +1,21 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3307/bank_db?serverTimezone=Asia/Seoul
+    username: root
+    password: {private}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update   # ?? ???? update ??, ??? production??? validate ??
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+# jwt:
+  #secret: mySecretKey
+  #expiration: 3600000  # 1?? (??? ??)
