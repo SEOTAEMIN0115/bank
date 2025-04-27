@@ -18,12 +18,35 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    // Spring Boot Starter Web
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    runtimeOnly 'com.h2database:h2'
+
+    // Spring Boot Starter JPA
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    // MySQL Driver
     runtimeOnly 'com.mysql:mysql-connector-j'
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // Spring Boot Starter Validation (요청값 검증용)
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // JWT (JSON Web Token)
+    //implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    //runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    //runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+    // Spring Boot Starter Security (JWT 필터 만들 때 사용)
+    //implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // Swagger (API 문서용, 선택사항)
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+
+    // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
