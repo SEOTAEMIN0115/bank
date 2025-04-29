@@ -1,6 +1,8 @@
 package org.example.bank.service;
 
 import org.example.bank.dto.request.CreateAccountRequest;
+import org.example.bank.dto.request.DepositRequest;
+import org.example.bank.dto.request.WithdrawRequest;
 import org.example.bank.dto.response.AccountResponse;
 import org.example.bank.entity.Account;
 import org.example.bank.entity.User;
@@ -37,5 +39,29 @@ public class AccountService {
             .orElseThrow(() -> new IllegalArgumentException("계좌를 찾을 수 없습니다."));
 
         return new AccountResponse(account.getId(), account.getAccountNumber(), account.getBalance());
+    }
+
+    public AccountResponse deposit(DepositRequest request) {
+        Account account = accountRepository.findById(request.getAccountId())
+            .orElseThrow(() -> new IllegalArgumentException("계좌를 찾을 수 없습니다."));
+
+        account.addBalance(request.getAmount());
+        Account savedAccount = accountRepository.save(account);
+
+        return new AccountResponse(savedAccount.getId(), savedAccount.getAccountNumber(), savedAccount.getBalance());
+    }
+
+    public AccountResponse withdraw(WithdrawRequest request) {
+        Account account = accountRepository.findById(request.getAccountId())
+            .orElseThrow(() -> new IllegalArgumentException("계좌를 찾을 수 없습니다."));
+
+        if (account.getBalance() < request.getAmount()) {
+            throw new IllegalArgumentException("잔액이 부족합니다.");
+        }
+
+        account.subtractBalance(request.getAmount());
+        Account savedAccount = accountRepository.save(account);
+
+        return new AccountResponse(savedAccount.getId(), savedAccount.getAccountNumber(), savedAccount.getBalance());
     }
 }

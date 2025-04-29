@@ -1,6 +1,8 @@
 package org.example.bank.controller;
 
 import org.example.bank.dto.request.CreateAccountRequest;
+import org.example.bank.dto.request.DepositRequest;
+import org.example.bank.dto.request.WithdrawRequest;
 import org.example.bank.dto.response.AccountResponse;
 import org.example.bank.service.AccountService;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +32,18 @@ public class AccountController {
     @GetMapping("/{accountId}")
     public ResponseEntity<AccountResponse> getAccount(@PathVariable Long accountId) {
         AccountResponse response = accountService.getAccount(accountId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/deposit")
+    public ResponseEntity<AccountResponse> deposit(@RequestBody DepositRequest request) {
+        AccountResponse response = accountService.deposit(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/withdraw")
+    public ResponseEntity<AccountResponse> withdraw(@RequestBody WithdrawRequest request) {
+        AccountResponse response = accountService.withdraw(request);
         return ResponseEntity.ok(response);
     }
 }
