@@ -45,4 +45,12 @@ public class Account {
         this.balance = balance;
         this.user = user;
     }
+
+    public void addBalance(Long amount) {
+        this.balance += amount;
+    }
+
+    public void subtractBalance(Long amount) {
+        this.balance -= amount;
+    }
 }
