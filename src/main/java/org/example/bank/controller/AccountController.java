@@ -2,6 +2,7 @@ package org.example.bank.controller;
 
 import org.example.bank.dto.request.CreateAccountRequest;
 import org.example.bank.dto.request.DepositRequest;
+import org.example.bank.dto.request.TransferRequest;
 import org.example.bank.dto.request.WithdrawRequest;
 import org.example.bank.dto.response.AccountResponse;
 import org.example.bank.service.AccountService;
@@ -44,6 +45,12 @@ public class AccountController {
     @PostMapping("/withdraw")
     public ResponseEntity<AccountResponse> withdraw(@RequestBody WithdrawRequest request) {
         AccountResponse response = accountService.withdraw(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/transfer")
+    public ResponseEntity<AccountResponse> transfer(@RequestBody TransferRequest request) {
+        AccountResponse response = accountService.transfer(request);
         return ResponseEntity.ok(response);
     }
 }
