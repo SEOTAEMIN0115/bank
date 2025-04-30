@@ -2,11 +2,14 @@ package org.example.bank.service;
 
 import org.example.bank.dto.request.CreateAccountRequest;
 import org.example.bank.dto.request.DepositRequest;
+import org.example.bank.dto.request.TransferRequest;
 import org.example.bank.dto.request.WithdrawRequest;
 import org.example.bank.dto.response.AccountResponse;
 import org.example.bank.entity.Account;
+import org.example.bank.entity.Transaction;
 import org.example.bank.entity.User;
 import org.example.bank.repository.AccountRepository;
+import org.example.bank.repository.TransactionRepository;
 import org.example.bank.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
@@ -18,10 +21,12 @@ public class AccountService {
 
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
+    private final TransactionRepository transactionRepository;
 
-    public AccountService(AccountRepository accountRepository, UserRepository userRepository) {
+    public AccountService(AccountRepository accountRepository, UserRepository userRepository, TransactionRepository transactionRepository) {
         this.accountRepository = accountRepository;
         this.userRepository = userRepository;
+        this.transactionRepository = transactionRepository;
     }
 
     public AccountResponse createAccount(CreateAccountRequest request) {
@@ -63,5 +68,30 @@ public class AccountService {
         Account savedAccount = accountRepository.save(account);
 
         return new AccountResponse(savedAccount.getId(), savedAccount.getAccountNumber(), savedAccount.getBalance());
+    }
+
+    @Transactional
+    public AccountResponse transfer(TransferRequest request) {
+        Account from = accountRepository.findById(request.getFromAccountId())
+            .orElseThrow(() -> new IllegalArgumentException("보내는 계좌를 찾을 수 없습니다."));
+
+        Account to = accountRepository.findById(request.getToAccountId())
+            .orElseThrow(() -> new IllegalArgumentException("받는 계좌를 찾을 수 없습니다."));
+
+        if (from.getBalance() < request.getAmount()) {
+            throw new IllegalArgumentException("잔액이 부족합니다.");
+        }
+
+        // 출금 처리
+        from.subtractBalance(request.getAmount());
+        accountRepository.save(from);
+        transactionRepository.save(new Transaction(from, "TRANSFER", request.getAmount(), from.getBalance()));
+
+        // 입금 처리
+        to.addBalance(request.getAmount());
+        accountRepository.save(to);
+        transactionRepository.save(new Transaction(to, "TRANSFER", request.getAmount(), to.getBalance()));
+
+        return new AccountResponse(from.getId(), from.getAccountNumber(), from.getBalance());
     }
 }
