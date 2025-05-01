@@ -10,12 +10,14 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update   # ?? ???? update ??, ??? production??? validate ??
+      ddl-auto: create-drop   # ?? ???? update ??, ??? production??? validate ??
     show-sql: true
     properties:
       hibernate:
         format_sql: true
 
-# jwt:
-  #secret: mySecretKey
-  #expiration: 3600000  # 1?? (??? ??)
+
+
+jwt:
+  secret: MySuperSecureJwtSecretKeyThatIsLongEnough123456!
+  expiration: 3600000

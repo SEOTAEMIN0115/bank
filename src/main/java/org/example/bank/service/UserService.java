@@ -1,36 +1,45 @@
 package org.example.bank.service;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+
+import org.example.bank.dto.request.UserRequest;
+import org.example.bank.dto.response.UserResponse;
 import org.example.bank.entity.User;
 import org.example.bank.repository.UserRepository;
+import org.example.bank.util.JwtTokenProvider;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
-@Transactional
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public void signup(UserRequest request) {
+        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+            throw new IllegalArgumentException("이미 존재하는 사용자입니다.");
+        }
+        String encodedPw = passwordEncoder.encode(request.getPassword());
+        User user = new User(request.getUsername(), encodedPw);
+        userRepository.save(user);
     }
 
-    public User signup(String username, String password, String name) {
-        if (userRepository.findByUsername(username).isPresent()) {
-            throw new IllegalArgumentException("이미 존재하는 아이디입니다.");
+    public String login(UserRequest request) {
+        User user = userRepository.findByUsername(request.getUsername())
+            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
-        User user = new User(username, password, name);
-        return userRepository.save(user);
+        return jwtTokenProvider.createToken(user.getId());
     }
 
-    public User login(String username, String password) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("아이디 또는 비밀번호가 잘못되었습니다."));
-
-        if (!user.getPassword().equals(password)) {
-            throw new IllegalArgumentException("아이디 또는 비밀번호가 잘못되었습니다.");
-        }
-
-        return user;
+    public UserResponse getMyInfo(Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
+        return new UserResponse(user.getId(), user.getUsername());
     }
 }
