@@ -2,6 +2,7 @@ package org.example.bank.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "users")
 @Getter
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User {
 
@@ -21,8 +23,11 @@ public class User {
 
     private String password;
 
-    public User(String username, String password) {
+    private String name;
+
+    public User(String username, String encodedPassword, String name) {
         this.username = username;
-        this.password = password;
+        this.password = encodedPassword;
+        this.name = name;
     }
 }
