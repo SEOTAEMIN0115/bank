@@ -19,10 +19,4 @@ public class TransactionController {
     public TransactionController(TransactionService transactionService) {
         this.transactionService = transactionService;
     }
-
-    @GetMapping("/{accountId}/transactions")
-    public ResponseEntity<List<TransactionResponse>> getTransactions(@PathVariable Long accountId) {
-        List<TransactionResponse> responses = transactionService.getTransactionsByAccount(accountId);
-        return ResponseEntity.ok(responses);
-    }
 }

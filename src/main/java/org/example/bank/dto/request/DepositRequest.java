@@ -8,4 +8,5 @@ import lombok.Setter;
 public class DepositRequest {
     private Long accountId;
     private Long amount;
+    private Long userId;  // 접근 제어용
 }

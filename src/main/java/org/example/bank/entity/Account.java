@@ -2,8 +2,11 @@ package org.example.bank.entity;
 
 import java.time.LocalDateTime;
 
+import org.example.bank.common.OperationResult;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -28,7 +31,7 @@ public class Account {
     @Column(nullable = false)
     private Long balance;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
@@ -46,11 +49,24 @@ public class Account {
         this.user = user;
     }
 
-    public void addBalance(Long amount) {
+    public OperationResult deposit(Long amount) {
+        if (amount == null || amount <= 0) {
+            return OperationResult.fail("입금 금액은 0보다 커야 합니다.");
+        }
+
         this.balance += amount;
+        return OperationResult.ok("입금 완료");
     }
 
-    public void subtractBalance(Long amount) {
+    public OperationResult withdraw(Long amount) {
+        if (amount == null || amount <= 0) {
+            return OperationResult.fail("출금 금액은 0보다 커야 합니다.");
+        }
+        if (this.balance < amount) {
+            return OperationResult.fail("잔액이 부족합니다.");
+        }
+
         this.balance -= amount;
+        return OperationResult.ok("출금 성공");
     }
 }

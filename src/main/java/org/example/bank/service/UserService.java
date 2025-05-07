@@ -24,7 +24,9 @@ public class UserService {
             throw new IllegalArgumentException("이미 존재하는 사용자입니다.");
         }
         String encodedPw = passwordEncoder.encode(request.getPassword());
-        User user = new User(request.getUsername(), encodedPw, request.getName());
+        User user = new User(request.getUsername(),
+            encodedPw,
+            request.getName());
         userRepository.save(user);
     }
 

@@ -1,10 +1,15 @@
 package org.example.bank.controller;
 
+import java.util.List;
+
+import org.example.bank.common.OperationResult;
 import org.example.bank.dto.request.CreateAccountRequest;
 import org.example.bank.dto.request.DepositRequest;
 import org.example.bank.dto.request.TransferRequest;
 import org.example.bank.dto.request.WithdrawRequest;
 import org.example.bank.dto.response.AccountResponse;
+import org.example.bank.dto.response.TransactionResponse;
+import org.example.bank.entity.User;
 import org.example.bank.service.AccountService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -36,27 +41,50 @@ public class AccountController {
     @GetMapping("/{accountId}")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<AccountResponse> getAccount(@PathVariable Long accountId) {
-
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        AccountResponse response = accountService.getAccount(accountId);
+        User user = (User) auth.getPrincipal();
+
+        AccountResponse response = accountService.getAccount(accountId, user.getId());
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/deposit")
-    public ResponseEntity<AccountResponse> deposit(@RequestBody DepositRequest request) {
-        AccountResponse response = accountService.deposit(request);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<?> deposit(@RequestBody DepositRequest request) {
+        OperationResult result = accountService.deposit(request);
+
+        if (!result.isSuccess()) {
+            return ResponseEntity.badRequest().body(result.getMessage());
+        }
+
+        return ResponseEntity.ok(result.getMessage());
     }
 
     @PostMapping("/withdraw")
-    public ResponseEntity<AccountResponse> withdraw(@RequestBody WithdrawRequest request) {
-        AccountResponse response = accountService.withdraw(request);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<?> withdraw(@RequestBody WithdrawRequest request) {
+        OperationResult result = accountService.withdraw(request);
+
+        if (!result.isSuccess()) {
+            return ResponseEntity.badRequest().body(result.getMessage());
+        }
+
+        return ResponseEntity.ok(result.getMessage());
     }
 
     @PostMapping("/transfer")
-    public ResponseEntity<AccountResponse> transfer(@RequestBody TransferRequest request) {
-        AccountResponse response = accountService.transfer(request);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<?> transfer(@RequestBody TransferRequest request) {
+        OperationResult result = accountService.transfer(request);
+
+        if (!result.isSuccess()) {
+            return ResponseEntity.badRequest().body(result.getMessage());
+        }
+
+        return ResponseEntity.ok(result.getMessage());
+    }
+
+    @GetMapping("/{accountId}/transactions")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<List<TransactionResponse>> getTransactions(@PathVariable Long accountId) {
+        List<TransactionResponse> responses = accountService.getTransactions(accountId);
+        return ResponseEntity.ok(responses);
     }
 }
