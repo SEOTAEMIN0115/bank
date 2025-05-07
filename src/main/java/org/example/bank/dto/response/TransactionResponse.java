@@ -12,6 +12,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public class TransactionResponse {
 
+    private Long id;
     private TransactionType type;
     private Long amount;
     private String senderName;
@@ -21,6 +22,7 @@ public class TransactionResponse {
 
     public static TransactionResponse from(Transaction tx) {
         return new TransactionResponse(
+            tx.getId(),
             tx.getType(),
             tx.getAmount(),
             tx.getSenderName(),

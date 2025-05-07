@@ -141,10 +141,15 @@ public class AccountService {
         return OperationResult.ok("이체 성공");
     }
 
-    public List<TransactionResponse> getTransactions(Long accountId, Long userId) {
-        Account account = getAuthorizedAccount(accountId, userId);
+    public List<TransactionResponse> getTransactions(Long accountId) {
+        Account account = accountRepository.findById(accountId)
+            .orElseThrow(() -> new IllegalArgumentException("계좌를 찾을 수 없습니다."));
+
         List<Transaction> transactions = transactionRepository.findByAccountIdOrderByCreatedAtDesc(accountId);
-        return transactions.stream().map(TransactionResponse::from).collect(Collectors.toList());
+
+        return transactions.stream()
+            .map(TransactionResponse::from)
+            .collect(Collectors.toList());
     }
 
     private Account getAuthorizedAccount(Long accountId, Long userId) {

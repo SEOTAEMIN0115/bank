@@ -22,8 +22,11 @@ public class TransactionService {
 
         return transactions.stream()
             .map(t -> new TransactionResponse(
+                t.getId(),
                 t.getType(),
                 t.getAmount(),
+                t.getSenderName(),
+                t.getReceiverName(),
                 t.getBalanceAfter(),
                 t.getCreatedAt()))
             .collect(Collectors.toList());

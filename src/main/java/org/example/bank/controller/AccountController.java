@@ -1,11 +1,14 @@
 package org.example.bank.controller;
 
+import java.util.List;
+
 import org.example.bank.common.OperationResult;
 import org.example.bank.dto.request.CreateAccountRequest;
 import org.example.bank.dto.request.DepositRequest;
 import org.example.bank.dto.request.TransferRequest;
 import org.example.bank.dto.request.WithdrawRequest;
 import org.example.bank.dto.response.AccountResponse;
+import org.example.bank.dto.response.TransactionResponse;
 import org.example.bank.entity.User;
 import org.example.bank.service.AccountService;
 import org.springframework.http.ResponseEntity;
@@ -76,5 +79,12 @@ public class AccountController {
         }
 
         return ResponseEntity.ok(result.getMessage());
+    }
+
+    @GetMapping("/{accountId}/transactions")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<List<TransactionResponse>> getTransactions(@PathVariable Long accountId) {
+        List<TransactionResponse> responses = accountService.getTransactions(accountId);
+        return ResponseEntity.ok(responses);
     }
 }
