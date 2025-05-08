@@ -2,11 +2,14 @@ package org.example.bank.service;
 
 import lombok.RequiredArgsConstructor;
 import org.example.bank.dto.response.AccountResponse;
+import org.example.bank.dto.response.TransactionResponse;
 import org.example.bank.dto.response.UserResponse;
 import org.example.bank.entity.Account;
 import org.example.bank.entity.Role;
+import org.example.bank.entity.Transaction;
 import org.example.bank.entity.User;
 import org.example.bank.repository.AccountRepository;
+import org.example.bank.repository.TransactionRepository;
 import org.example.bank.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +23,7 @@ public class AdminService {
 
     private final UserRepository userRepository;
     private final AccountRepository accountRepository;
+    private final TransactionRepository transactionRepository;
 
     @Transactional
     public void deleteUser(Long userId) {
@@ -51,6 +55,15 @@ public class AdminService {
 
         return accounts.stream()
                 .map(AccountResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<TransactionResponse> getAllTransactions() {
+        List<Transaction> transactions = transactionRepository.findAll();
+
+        return transactions.stream()
+                .map(TransactionResponse::from)
                 .collect(Collectors.toList());
     }
 }

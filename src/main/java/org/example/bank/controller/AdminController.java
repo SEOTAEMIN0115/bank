@@ -2,6 +2,7 @@ package org.example.bank.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.bank.dto.response.AccountResponse;
+import org.example.bank.dto.response.TransactionResponse;
 import org.example.bank.dto.response.UserResponse;
 import org.example.bank.entity.User;
 import org.example.bank.repository.UserRepository;
@@ -47,5 +48,11 @@ public class AdminController {
     public ResponseEntity<List<AccountResponse>> getAllAccounts() {
         List<AccountResponse> accounts = adminService.getAllAccounts();
         return ResponseEntity.ok(accounts);
+    }
+
+    @GetMapping("/transactions")
+    public ResponseEntity<List<TransactionResponse>> getAllTransactions() {
+        List<TransactionResponse> transactions = adminService.getAllTransactions();
+        return ResponseEntity.ok(transactions);
     }
 }
