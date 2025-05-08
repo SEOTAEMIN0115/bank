@@ -4,11 +4,14 @@ import lombok.RequiredArgsConstructor;
 import org.example.bank.dto.response.AccountResponse;
 import org.example.bank.dto.response.TransactionResponse;
 import org.example.bank.dto.response.UserResponse;
+import org.example.bank.entity.Transaction;
 import org.example.bank.entity.User;
+import org.example.bank.repository.TransactionRepository;
 import org.example.bank.repository.UserRepository;
 import org.example.bank.service.AdminService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +25,7 @@ public class AdminController {
 
     private final UserRepository userRepository;
     private final AdminService adminService;
+    private final TransactionRepository transactionRepository;
 
     @GetMapping("/users")
     public ResponseEntity<List<UserResponse>> getAllUsers() {
@@ -53,6 +57,12 @@ public class AdminController {
     @GetMapping("/transactions")
     public ResponseEntity<List<TransactionResponse>> getAllTransactions() {
         List<TransactionResponse> transactions = adminService.getAllTransactions();
+        return ResponseEntity.ok(transactions);
+    }
+
+    @GetMapping("/users/{userId}/transactions")
+    public ResponseEntity<List<TransactionResponse>> getUserTransactions(@PathVariable Long userId) {
+        List<TransactionResponse> transactions = adminService.getUserTransactions(userId);
         return ResponseEntity.ok(transactions);
     }
 }

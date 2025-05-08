@@ -66,4 +66,12 @@ public class AdminService {
                 .map(TransactionResponse::from)
                 .collect(Collectors.toList());
     }
+
+    @Transactional(readOnly = true)
+    public List<TransactionResponse> getUserTransactions(Long userId) {
+        List<Transaction> txs = transactionRepository.findAllByUserId(userId);
+        return txs.stream()
+                .map(TransactionResponse::from)
+                .collect(Collectors.toList());
+    }
 }
