@@ -23,15 +23,15 @@ public class JwtTokenProvider {
 
     private final Key key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
 
-    public String createToken(Long userId) {
+    public String createToken(Long userId, String role) {
         Date now = new Date();
-        System.out.println("토큰 발생");
         return Jwts.builder()
-            .setSubject(String.valueOf(userId))
-            .setIssuedAt(now)
-            .setExpiration(new Date(now.getTime() + expiration))
-            .signWith(key, SignatureAlgorithm.HS256)
-            .compact();
+                .setSubject(String.valueOf(userId))
+                .claim("role", role)  // 👈 추가
+                .setIssuedAt(now)
+                .setExpiration(new Date(now.getTime() + expiration))
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
     }
 
     public Long getUserId(String token) {
@@ -50,5 +50,14 @@ public class JwtTokenProvider {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public String getUserRole(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("role", String.class);
     }
 }

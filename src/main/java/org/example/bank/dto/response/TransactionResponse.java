@@ -13,22 +13,20 @@ import lombok.Getter;
 public class TransactionResponse {
 
     private Long id;
-    private TransactionType type;
+    private String type;
     private Long amount;
     private String senderName;
     private String receiverName;
-    private Long balanceAfter;
     private LocalDateTime createdAt;
 
     public static TransactionResponse from(Transaction tx) {
         return new TransactionResponse(
-            tx.getId(),
-            tx.getType(),
-            tx.getAmount(),
-            tx.getSenderName(),
-            tx.getReceiverName(),
-            tx.getBalanceAfter(),
-            tx.getCreatedAt()
+                tx.getId(),
+                tx.getType().name(),
+                tx.getAmount(),
+                tx.getSender() != null ? tx.getSender().getName() : null,
+                tx.getReceiver() != null ? tx.getReceiver().getName() : null,
+                tx.getCreatedAt()
         );
     }
 }

@@ -37,7 +37,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("비밀번호가 일치하지 않습니다.");
         }
 
-        String token = jwtTokenProvider.createToken(user.getId());
+        String token = jwtTokenProvider.createToken(user.getId() , user.getRole().name());
         System.out.println(token); // 임시 방편으로 사용
         return ResponseEntity.ok(Collections.singletonMap("token", token));
     }

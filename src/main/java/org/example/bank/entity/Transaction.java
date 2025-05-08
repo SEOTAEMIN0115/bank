@@ -23,8 +23,6 @@ import lombok.Setter;
 
 @Entity
 @Getter
-@Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Transaction {
@@ -38,20 +36,32 @@ public class Transaction {
 
     private Long amount;
 
-    private String senderName;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sender_id")
+    private User sender;
 
-    private String receiverName;
-
-    private Long balanceAfter;
-
-    private LocalDateTime createdAt;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "receiver_id")
+    private User receiver;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id")
     private Account account;
 
+    private LocalDateTime createdAt;
+
     @PrePersist
-    protected void onCreate() {
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+    }
+
+    // 편의 생성자
+    public Transaction(TransactionType type, Long amount, User sender, User receiver, Account account) {
+        this.type = type;
+        this.amount = amount;
+        this.sender = sender;
+        this.receiver = receiver;
+        this.account = account;
         this.createdAt = LocalDateTime.now();
     }
 }

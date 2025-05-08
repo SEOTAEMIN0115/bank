@@ -36,12 +36,12 @@ public class UserService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
-        return jwtTokenProvider.createToken(user.getId());
+        return jwtTokenProvider.createToken(user.getId(), user.getRole().name());
     }
 
     public UserResponse getMyInfo(Long userId) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
-        return new UserResponse(user.getId(), user.getUsername());
+        return new UserResponse(user.getId(), user.getUsername(), user.getRole().name() , user.getName());
     }
 }
