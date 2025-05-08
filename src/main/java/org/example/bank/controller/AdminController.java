@@ -15,13 +15,13 @@ import java.util.stream.Collectors;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/admin")
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
 
     private final UserRepository userRepository;
     private final AdminService adminService;
 
     @GetMapping("/users")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserResponse>> getAllUsers() {
         List<User> users = userRepository.findAll();
         List<UserResponse> responses = users.stream()
@@ -31,9 +31,14 @@ public class AdminController {
     }
 
     @DeleteMapping("/users/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteUser(@PathVariable Long userId) {
         adminService.deleteUser(userId);
         return ResponseEntity.ok("사용자가 삭제되었습니다.");
+    }
+
+    @PatchMapping("/users/{userId}/role")
+    public ResponseEntity<Void> updateUserRole(@PathVariable Long userId) {
+        adminService.updateUserRole(userId);
+        return ResponseEntity.noContent().build();
     }
 }
