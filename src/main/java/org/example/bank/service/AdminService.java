@@ -1,13 +1,15 @@
 package org.example.bank.service;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.example.bank.dto.response.AccountResponse;
 import org.example.bank.dto.response.UserResponse;
+import org.example.bank.entity.Account;
 import org.example.bank.entity.Role;
 import org.example.bank.entity.User;
 import org.example.bank.repository.AccountRepository;
 import org.example.bank.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,5 +43,14 @@ public class AdminService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         user.setRole(Role.ADMIN); // USER → ADMIN
+    }
+
+    @Transactional(readOnly = true)
+    public List<AccountResponse> getAllAccounts() {
+        List<Account> accounts = accountRepository.findAll();
+
+        return accounts.stream()
+                .map(AccountResponse::fromEntity)
+                .collect(Collectors.toList());
     }
 }

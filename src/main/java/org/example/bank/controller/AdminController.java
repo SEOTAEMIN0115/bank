@@ -1,6 +1,7 @@
 package org.example.bank.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.example.bank.dto.response.AccountResponse;
 import org.example.bank.dto.response.UserResponse;
 import org.example.bank.entity.User;
 import org.example.bank.repository.UserRepository;
@@ -40,5 +41,11 @@ public class AdminController {
     public ResponseEntity<Void> updateUserRole(@PathVariable Long userId) {
         adminService.updateUserRole(userId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/accounts")
+    public ResponseEntity<List<AccountResponse>> getAllAccounts() {
+        List<AccountResponse> accounts = adminService.getAllAccounts();
+        return ResponseEntity.ok(accounts);
     }
 }
