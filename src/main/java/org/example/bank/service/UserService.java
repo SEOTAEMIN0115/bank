@@ -3,6 +3,7 @@ package org.example.bank.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
+import org.example.bank.dto.request.ChangePasswordRequest;
 import org.example.bank.dto.request.UserRequest;
 import org.example.bank.dto.response.UserResponse;
 import org.example.bank.entity.User;
@@ -43,5 +44,18 @@ public class UserService {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
         return new UserResponse(user.getId(), user.getUsername(), user.getRole().name() , user.getName());
+    }
+
+    @Transactional
+    public void changePassword(Long userId, ChangePasswordRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("기존 비밀번호가 일치하지 않습니다.");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
     }
 }

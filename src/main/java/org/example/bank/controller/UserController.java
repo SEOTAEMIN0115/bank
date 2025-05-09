@@ -1,5 +1,6 @@
 package org.example.bank.controller;
 
+import org.example.bank.dto.request.ChangePasswordRequest;
 import org.example.bank.dto.request.LoginRequest;
 import org.example.bank.dto.request.SignupRequest;
 import org.example.bank.dto.request.UserRequest;
@@ -9,12 +10,10 @@ import org.example.bank.dto.response.UserResponse;
 import org.example.bank.entity.User;
 import org.example.bank.service.UserService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
 
 import lombok.RequiredArgsConstructor;
 
@@ -41,5 +40,15 @@ public class UserController {
     public ResponseEntity<UserResponse> getMyInfo(Authentication authentication) {
         Long userId = (Long) authentication.getPrincipal();
         return ResponseEntity.ok(userService.getMyInfo(userId));
+    }
+
+    @PatchMapping("/password")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) auth.getPrincipal();
+
+        userService.changePassword(user.getId(), request);
+        return ResponseEntity.ok("비밀번호가 성공적으로 변경되었습니다.");
     }
 }
