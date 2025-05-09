@@ -10,13 +10,11 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: none
     show-sql: true
     properties:
       hibernate:
         format_sql: true
-  profiles:
-    active: dev
 
 jwt:
   secret: MySuperSecureJwtSecretKeyThatIsLongEnough123456!
@@ -28,4 +26,3 @@ springdoc:
     path: /swagger-ui.html
   api-docs:
     path: /v3/api-docs
-
