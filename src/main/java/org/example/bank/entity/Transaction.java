@@ -23,6 +23,7 @@ import lombok.Setter;
 
 @Entity
 @Getter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Transaction {

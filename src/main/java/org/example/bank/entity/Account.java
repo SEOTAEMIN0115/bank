@@ -2,6 +2,7 @@ package org.example.bank.entity;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import jakarta.persistence.*;
 import org.example.bank.common.OperationResult;
@@ -34,14 +35,15 @@ public class Account {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
 
-    public Account(String accountNumber, Long balance, User user) {
-        this.accountNumber = accountNumber;
-        this.balance = balance;
+    public Account(User user) {
+        this.accountNumber = UUID.randomUUID().toString().substring(0, 10); // 또는 고유 번호 생성 로직
+        this.balance = 0L;
         this.user = user;
     }
 
