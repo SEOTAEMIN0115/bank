@@ -2,6 +2,7 @@ package org.example.bank.controller;
 
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
 import org.example.bank.common.OperationResult;
 import org.example.bank.dto.request.CreateAccountRequest;
 import org.example.bank.dto.request.DepositRequest;
@@ -24,13 +25,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/accounts")
+@RequiredArgsConstructor
 public class AccountController {
 
     private final AccountService accountService;
-
-    public AccountController(AccountService accountService) {
-        this.accountService = accountService;
-    }
 
     @PostMapping
     public ResponseEntity<AccountResponse> createAccount(@RequestBody CreateAccountRequest request) {
@@ -41,44 +39,30 @@ public class AccountController {
     @GetMapping("/{accountId}")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<AccountResponse> getAccount(@PathVariable Long accountId) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) auth.getPrincipal();
-
+        User user = getCurrentUser();
         AccountResponse response = accountService.getAccount(accountId, user.getId());
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/deposit")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> deposit(@RequestBody DepositRequest request) {
         OperationResult result = accountService.deposit(request);
-
-        if (!result.isSuccess()) {
-            return ResponseEntity.badRequest().body(result.getMessage());
-        }
-
-        return ResponseEntity.ok(result.getMessage());
+        return buildResponse(result);
     }
 
     @PostMapping("/withdraw")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> withdraw(@RequestBody WithdrawRequest request) {
         OperationResult result = accountService.withdraw(request);
-
-        if (!result.isSuccess()) {
-            return ResponseEntity.badRequest().body(result.getMessage());
-        }
-
-        return ResponseEntity.ok(result.getMessage());
+        return buildResponse(result);
     }
 
     @PostMapping("/transfer")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> transfer(@RequestBody TransferRequest request) {
         OperationResult result = accountService.transfer(request);
-
-        if (!result.isSuccess()) {
-            return ResponseEntity.badRequest().body(result.getMessage());
-        }
-
-        return ResponseEntity.ok(result.getMessage());
+        return buildResponse(result);
     }
 
     @GetMapping("/{accountId}/transactions")
@@ -86,5 +70,20 @@ public class AccountController {
     public ResponseEntity<List<TransactionResponse>> getTransactions(@PathVariable Long accountId) {
         List<TransactionResponse> responses = accountService.getTransactions(accountId);
         return ResponseEntity.ok(responses);
+    }
+
+    // 공통 응답 포맷
+    private ResponseEntity<?> buildResponse(OperationResult result) {
+        if (result.isSuccess()) {
+            return ResponseEntity.ok(result.getMessage());
+        } else {
+            return ResponseEntity.badRequest().body(result.getMessage());
+        }
+    }
+
+    // 현재 인증된 유저 가져오기
+    private User getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return (User) auth.getPrincipal();
     }
 }
