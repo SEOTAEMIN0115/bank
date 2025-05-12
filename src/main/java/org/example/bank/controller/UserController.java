@@ -1,11 +1,15 @@
 package org.example.bank.controller;
 
+import java.util.List;
+
 import org.example.bank.dto.request.ChangePasswordRequest;
 import org.example.bank.dto.request.LoginRequest;
 import org.example.bank.dto.request.SignupRequest;
+import org.example.bank.dto.request.UpdateUserRoleRequest;
 import org.example.bank.dto.request.UserRequest;
 import org.example.bank.dto.response.LoginResponse;
 import org.example.bank.dto.response.SignupResponse;
+import org.example.bank.dto.response.UserDetailResponse;
 import org.example.bank.dto.response.UserResponse;
 import org.example.bank.entity.User;
 import org.example.bank.service.UserService;
@@ -50,5 +54,29 @@ public class UserController {
 
         userService.changePassword(user.getId(), request);
         return ResponseEntity.ok("비밀번호가 성공적으로 변경되었습니다.");
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping
+    public ResponseEntity<List<UserResponse>> getAllUsers() {
+        List<UserResponse> users = userService.getAllUsers();
+        return ResponseEntity.ok(users);
+    }
+
+    @PatchMapping("/{userId}/role")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> updateUserRole(
+        @PathVariable Long userId,
+        @RequestBody UpdateUserRoleRequest request) {
+
+        userService.updateUserRole(userId, request.getRole());
+        return ResponseEntity.ok("회원 역할이 성공적으로 변경되었습니다.");
+    }
+
+    @GetMapping("/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserDetailResponse> getUserById(@PathVariable Long userId) {
+        UserDetailResponse response = userService.getUserById(userId);
+        return ResponseEntity.ok(response);
     }
 }
