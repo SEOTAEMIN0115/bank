@@ -37,7 +37,7 @@ public class AdminService {
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll()
                 .stream()
-                .map(UserResponse::fromEntity)
+                .map(UserResponse::from)
                 .collect(Collectors.toList());
     }
 

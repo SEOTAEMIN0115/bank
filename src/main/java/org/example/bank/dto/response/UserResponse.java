@@ -20,13 +20,4 @@ public class UserResponse {
                 user.getRole().name()
         );
     }
-
-    public static UserResponse fromEntity(User user) {
-        return new UserResponse(
-                user.getId(),
-                user.getUsername(),
-                user.getName(),
-                user.getRole().name()
-        );
-    }
 }
