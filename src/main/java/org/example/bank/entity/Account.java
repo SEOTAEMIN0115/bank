@@ -35,6 +35,7 @@ public class Account {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
+    private boolean isActive = true;
 
     @PrePersist
     protected void onCreate() {
@@ -66,5 +67,13 @@ public class Account {
 
         this.balance -= amount;
         return OperationResult.ok("출금 성공");
+    }
+
+    public void deactivate() {
+        this.isActive = false;
+    }
+
+    public boolean isActive() {
+        return isActive;
     }
 }

@@ -38,7 +38,7 @@ public class SecurityConfig {
                     "/swagger-resources/**",
                     "/webjars/**"
                 ).permitAll()
-                .requestMatchers("/api/users/**","/api/auth/**").permitAll()
+                .requestMatchers("/api/users/**","/api/auth/**" , "/api/accounts/**").hasRole("USER")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")// 로그인, 회원가입 허용
                 .anyRequest().authenticated() // 그 외는 인증 필요
             )

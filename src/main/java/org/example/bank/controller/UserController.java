@@ -3,6 +3,7 @@ package org.example.bank.controller;
 import java.util.List;
 
 import org.example.bank.dto.request.ChangePasswordRequest;
+import org.example.bank.dto.request.ChangeRoleRequest;
 import org.example.bank.dto.request.LoginRequest;
 import org.example.bank.dto.request.SignupRequest;
 import org.example.bank.dto.request.UpdateUserRoleRequest;
@@ -11,12 +12,16 @@ import org.example.bank.dto.response.LoginResponse;
 import org.example.bank.dto.response.SignupResponse;
 import org.example.bank.dto.response.UserDetailResponse;
 import org.example.bank.dto.response.UserResponse;
+import org.example.bank.entity.Role;
 import org.example.bank.entity.User;
+import org.example.bank.repository.UserRepository;
 import org.example.bank.service.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import lombok.RequiredArgsConstructor;
@@ -26,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserController {
 
+    private final UserRepository userRepository;
     private final UserService userService;
 
     @PostMapping("/signup")
@@ -41,9 +47,9 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserResponse> getMyInfo(Authentication authentication) {
-        Long userId = (Long) authentication.getPrincipal();
-        return ResponseEntity.ok(userService.getMyInfo(userId));
+    public ResponseEntity<UserResponse> getMyInfo() {
+        User currentUser = getCurrentUser(); // 위에서 정의한 메서드 사용
+        return ResponseEntity.ok(UserResponse.from(currentUser));
     }
 
     @PatchMapping("/password")
@@ -78,5 +84,41 @@ public class UserController {
     public ResponseEntity<UserDetailResponse> getUserById(@PathVariable Long userId) {
         UserDetailResponse response = userService.getUserById(userId);
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/users/change-role")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> changeUserRole(@RequestBody ChangeRoleRequest request) {
+        userService.changeUserRole(request);
+        return ResponseEntity.ok("User role updated successfully");
+    }
+
+    @DeleteMapping("/users/{userId}")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<String> deleteUser(@PathVariable Long userId) {
+        User currentUser = getCurrentUser();
+
+        // 본인 또는 관리자만 삭제 가능
+        if (!currentUser.getId().equals(userId) && !currentUser.getRole().equals(Role.ADMIN)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied.");
+        }
+
+        userService.deleteUser(userId);
+        return ResponseEntity.ok("User deleted successfully.");
+    }
+
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new IllegalStateException("No authenticated user found");
+        }
+
+        return (Long) authentication.getPrincipal(); // principal에 userId가 들어감
+    }
+
+    private User getCurrentUser() {
+        Long userId = getCurrentUserId();
+        return userRepository.findById(userId)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 }

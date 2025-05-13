@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 import org.example.bank.dto.request.ChangePasswordRequest;
+import org.example.bank.dto.request.ChangeRoleRequest;
 import org.example.bank.dto.request.UserRequest;
 import org.example.bank.dto.response.UserDetailResponse;
 import org.example.bank.dto.response.UserResponse;
@@ -85,5 +86,19 @@ public class UserService {
             .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
 
         return UserDetailResponse.from(user);
+    }
+
+    @Transactional
+    public void changeUserRole(ChangeRoleRequest request) {
+        User user = userRepository.findById(request.getUserId())
+            .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        user.setRole(Role.valueOf(request.getNewRole().toUpperCase())); // Enum 타입에 따라 조정 필요
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void deleteUser(Long userId) {
+        userRepository.deleteById(userId);
     }
 }
