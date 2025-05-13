@@ -1,5 +1,6 @@
 package org.example.bank.controller;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.example.bank.dto.response.AccountResponse;
 import org.example.bank.dto.response.TransactionResponse;
 import org.example.bank.entity.User;
 import org.example.bank.service.AccountService;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -85,5 +88,26 @@ public class AccountController {
     private User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return (User) auth.getPrincipal();
+    }
+
+    @PostMapping("/{accountId}/deactivate")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> deactivateAccount(@PathVariable Long accountId) {
+        User user = getCurrentUser();
+        OperationResult result = accountService.deactivateAccount(accountId, user.getId());
+        return buildResponse(result);
+    }
+
+    @PreAuthorize("hasRole('USER')")
+    @GetMapping("/{accountId}/transactions/filter")
+    public ResponseEntity<List<TransactionResponse>> filterTransactions(
+        @PathVariable Long accountId,
+        @RequestParam(required = false) String type,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+    ) {
+        User user = getCurrentUser();
+        List<TransactionResponse> responses = accountService.filterTransactions(accountId, user.getId(), type, startDate, endDate);
+        return ResponseEntity.ok(responses);
     }
 }

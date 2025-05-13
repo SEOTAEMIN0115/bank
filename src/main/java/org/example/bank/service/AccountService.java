@@ -19,6 +19,7 @@ import org.example.bank.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,6 +47,10 @@ public class AccountService {
         Account account = accountRepository.findById(request.getAccountId())
                 .orElseThrow(() -> new IllegalArgumentException("계좌를 찾을 수 없습니다."));
 
+        if (!account.isActive()) {
+            return OperationResult.fail("비활성화된 계좌에서는 출금할 수 없습니다.");
+        }
+
         OperationResult result = account.deposit(request.getAmount());
         if (!result.isSuccess()) {
             return result;
@@ -67,6 +72,10 @@ public class AccountService {
     public OperationResult withdraw(WithdrawRequest request) {
         Account account = accountRepository.findById(request.getAccountId())
                 .orElseThrow(() -> new IllegalArgumentException("계좌를 찾을 수 없습니다."));
+
+        if (!account.isActive()) {
+            return OperationResult.fail("비활성화된 계좌에서는 출금할 수 없습니다.");
+        }
 
         OperationResult result = account.withdraw(request.getAmount());
         if (!result.isSuccess()) {
@@ -93,7 +102,12 @@ public class AccountService {
         Account to = accountRepository.findById(request.getToAccountId())
                 .orElseThrow(() -> new IllegalArgumentException("입금 계좌를 찾을 수 없습니다."));
 
+        if (!from.isActive() || !to.isActive()) {
+            return OperationResult.fail("비활성화된 계좌와의 거래는 불가능합니다.");
+        }
+
         OperationResult withdrawResult = from.withdraw(request.getAmount());
+
         if (!withdrawResult.isSuccess()) {
             return OperationResult.fail("이체 실패 - " + withdrawResult.getMessage());
         }
@@ -134,6 +148,13 @@ public class AccountService {
 
     @Transactional(readOnly = true)
     public List<TransactionResponse> getTransactions(Long accountId) {
+
+        Account account = accountRepository.findById(accountId)
+            .orElseThrow(() -> new IllegalArgumentException("계좌를 찾을 수 없습니다."));
+
+        if (!account.isActive()) {
+            throw new IllegalStateException("비활성화된 계좌의 거래내역은 조회할 수 없습니다.");
+        }
         // accountId로 거래내역 조회
         List<Transaction> transactions = transactionRepository.findByAccountIdOrderByCreatedAtDesc(accountId);
 
@@ -152,5 +173,28 @@ public class AccountService {
         }
 
         return AccountResponse.fromEntity(account);
+    }
+
+    @Transactional
+    public OperationResult deactivateAccount(Long accountId, Long userId) {
+        Account account = accountRepository.findById(accountId)
+            .orElseThrow(() -> new IllegalArgumentException("계좌를 찾을 수 없습니다."));
+
+        if (!account.getUser().getId().equals(userId)) {
+            return OperationResult.fail("본인의 계좌만 비활성화할 수 있습니다.");
+        }
+
+        if (!account.isActive()) {
+            return OperationResult.fail("이미 비활성화된 계좌입니다.");
+        }
+
+        account.deactivate();
+        return OperationResult.ok("계좌가 성공적으로 비활성화되었습니다.");
+    }
+
+    public List<TransactionResponse> filterTransactions(Long accountId, Long userId, String type, LocalDate start, LocalDate end) {
+        // 계좌 소유자 검증 후
+        List<Transaction> filtered = transactionRepository.findByFilters(accountId, type, start, end);
+        return filtered.stream().map(TransactionResponse::from).toList();
     }
 }
