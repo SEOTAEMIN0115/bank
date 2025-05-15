@@ -16,6 +16,8 @@ import org.example.bank.entity.User;
 import org.example.bank.repository.AccountRepository;
 import org.example.bank.repository.TransactionRepository;
 import org.example.bank.repository.UserRepository;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +32,7 @@ public class AccountService {
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public AccountResponse createAccount(CreateAccountRequest request) {
@@ -230,5 +233,18 @@ public class AccountService {
 
         accountRepository.delete(account);
         return OperationResult.ok("계좌가 성공적으로 삭제되었습니다.");
+    }
+
+    @Transactional
+    public void updatePassword(Long accountId, String password, Long userId) {
+        Account account = accountRepository.findById(accountId)
+            .orElseThrow(() -> new IllegalArgumentException("계좌를 찾을 수 없습니다."));
+
+        if (!account.getUser().getId().equals(userId)) {
+            throw new AccessDeniedException("해당 계좌에 대한 권한이 없습니다.");
+        }
+
+        String encodedPassword = passwordEncoder.encode(password);
+        account.setPassword(encodedPassword);
     }
 }

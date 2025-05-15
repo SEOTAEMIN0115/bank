@@ -37,6 +37,9 @@ public class Account {
 
     private boolean isActive = true;
 
+    @Column(nullable = true)
+    private String password; // 비밀번호 해시값
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
@@ -75,5 +78,9 @@ public class Account {
 
     public boolean isActive() {
         return isActive;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }
