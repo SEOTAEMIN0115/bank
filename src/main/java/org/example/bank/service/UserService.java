@@ -5,15 +5,20 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
+import org.example.bank.common.OperationResult;
 import org.example.bank.dto.request.ChangePasswordRequest;
 import org.example.bank.dto.request.ChangeRoleRequest;
+import org.example.bank.dto.request.UpdatePasswordRequest;
 import org.example.bank.dto.request.UserRequest;
 import org.example.bank.dto.response.UserDetailResponse;
 import org.example.bank.dto.response.UserResponse;
+import org.example.bank.entity.Account;
 import org.example.bank.entity.Role;
 import org.example.bank.entity.User;
+import org.example.bank.repository.AccountRepository;
 import org.example.bank.repository.UserRepository;
 import org.example.bank.util.JwtTokenProvider;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +30,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
+    private final AccountRepository accountRepository;
 
     public void signup(UserRequest request) {
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
@@ -99,6 +105,35 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Long userId) {
-        userRepository.deleteById(userId);
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
+
+        userRepository.delete(user);
+    }
+
+    public void updatePassword(Long userId, UpdatePasswordRequest request) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public OperationResult deactivateUser(Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        List<Account> activeAccounts = accountRepository.findByUserIdAndIsActiveTrue(userId);
+        if (!activeAccounts.isEmpty()) {
+            return OperationResult.fail("해지되지 않은 계좌가 있습니다.");
+        }
+
+        user.deactivate();
+        return OperationResult.ok("회원 탈퇴가 완료되었습니다.");
     }
 }

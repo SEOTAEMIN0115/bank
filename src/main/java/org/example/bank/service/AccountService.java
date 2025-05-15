@@ -16,6 +16,8 @@ import org.example.bank.entity.User;
 import org.example.bank.repository.AccountRepository;
 import org.example.bank.repository.TransactionRepository;
 import org.example.bank.repository.UserRepository;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +32,7 @@ public class AccountService {
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public AccountResponse createAccount(CreateAccountRequest request) {
@@ -196,5 +199,59 @@ public class AccountService {
         // 계좌 소유자 검증 후
         List<Transaction> filtered = transactionRepository.findByFilters(accountId, type, start, end);
         return filtered.stream().map(TransactionResponse::from).toList();
+    }
+
+    @Transactional
+    public OperationResult closeAccount(Long accountId, Long userId) {
+        Account account = accountRepository.findById(accountId)
+            .orElseThrow(() -> new IllegalArgumentException("계좌를 찾을 수 없습니다."));
+
+        if (!account.getUser().getId().equals(userId)) {
+            return OperationResult.fail("계좌 소유자가 아닙니다.");
+        }
+
+        if (account.getBalance() > 0) {
+            return OperationResult.fail("잔액이 남아있는 계좌는 해지할 수 없습니다.");
+        }
+
+        account.deactivate();
+        return OperationResult.ok("계좌가 성공적으로 해지되었습니다.");
+    }
+
+    @Transactional
+    public OperationResult deleteAccount(Long accountId, Long userId) {
+        Account account = accountRepository.findById(accountId)
+            .orElse(null);
+
+        if (account == null) {
+            return OperationResult.fail("계좌가 존재하지 않습니다.");
+        }
+
+        if (!account.getUser().getId().equals(userId)) {
+            return OperationResult.fail("본인 계좌만 삭제할 수 있습니다.");
+        }
+
+        accountRepository.delete(account);
+        return OperationResult.ok("계좌가 성공적으로 삭제되었습니다.");
+    }
+
+    @Transactional
+    public void updatePassword(Long accountId, String password, Long userId) {
+        Account account = accountRepository.findById(accountId)
+            .orElseThrow(() -> new IllegalArgumentException("계좌를 찾을 수 없습니다."));
+
+        if (!account.getUser().getId().equals(userId)) {
+            throw new AccessDeniedException("해당 계좌에 대한 권한이 없습니다.");
+        }
+
+        String encodedPassword = passwordEncoder.encode(password);
+        account.setPassword(encodedPassword);
+    }
+
+    public boolean checkPassword(String accountNumber, String password) {
+        Account account = accountRepository.findByAccountNumber(accountNumber)
+            .orElseThrow(() -> new IllegalArgumentException("계좌를 찾을 수 없습니다."));
+
+        return account.getPassword().equals(password);
     }
 }

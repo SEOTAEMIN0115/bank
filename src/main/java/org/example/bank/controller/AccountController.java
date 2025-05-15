@@ -5,11 +5,15 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import org.example.bank.common.OperationResult;
+import org.example.bank.dto.request.CloseAccountRequest;
 import org.example.bank.dto.request.CreateAccountRequest;
 import org.example.bank.dto.request.DepositRequest;
+import org.example.bank.dto.request.PasswordCheckRequest;
 import org.example.bank.dto.request.TransferRequest;
+import org.example.bank.dto.request.UpdateAccountPasswordRequest;
 import org.example.bank.dto.request.WithdrawRequest;
 import org.example.bank.dto.response.AccountResponse;
+import org.example.bank.dto.response.PasswordCheckResponse;
 import org.example.bank.dto.response.TransactionResponse;
 import org.example.bank.entity.User;
 import org.example.bank.service.AccountService;
@@ -18,7 +22,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -109,5 +115,41 @@ public class AccountController {
         User user = getCurrentUser();
         List<TransactionResponse> responses = accountService.filterTransactions(accountId, user.getId(), type, startDate, endDate);
         return ResponseEntity.ok(responses);
+    }
+
+    @PostMapping("/close")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> closeAccount(@RequestBody CloseAccountRequest request) {
+        Long userId = getCurrentUserId();
+        OperationResult result = accountService.closeAccount(request.getAccountId(), userId);
+        return buildResponse(result);
+    }
+
+    private Long getCurrentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return (Long) auth.getPrincipal();
+    }
+
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @DeleteMapping("/accounts/{accountId}")
+    public ResponseEntity<?> deleteAccount(@PathVariable Long accountId) {
+        Long userId = getCurrentUserId();
+        OperationResult result = accountService.deleteAccount(accountId, userId);
+        return buildResponse(result);
+    }
+
+    @PatchMapping("/accounts/{accountId}/password")
+    public ResponseEntity<String> updatePassword(@PathVariable Long accountId,
+        @RequestBody UpdateAccountPasswordRequest request,
+        Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        accountService.updatePassword(accountId, request.getPassword(), userId);
+        return ResponseEntity.ok("비밀번호가 성공적으로 변경되었습니다.");
+    }
+
+    @PostMapping("/accounts/check-password")
+    public ResponseEntity<PasswordCheckResponse> checkPassword(@RequestBody PasswordCheckRequest request) {
+        boolean matched = accountService.checkPassword(request.getAccountNumber(), request.getPassword());
+        return ResponseEntity.ok(new PasswordCheckResponse(matched));
     }
 }
