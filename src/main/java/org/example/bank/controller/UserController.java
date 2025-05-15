@@ -6,6 +6,7 @@ import org.example.bank.dto.request.ChangePasswordRequest;
 import org.example.bank.dto.request.ChangeRoleRequest;
 import org.example.bank.dto.request.LoginRequest;
 import org.example.bank.dto.request.SignupRequest;
+import org.example.bank.dto.request.UpdatePasswordRequest;
 import org.example.bank.dto.request.UpdateUserRoleRequest;
 import org.example.bank.dto.request.UserRequest;
 import org.example.bank.dto.response.LoginResponse;
@@ -120,5 +121,12 @@ public class UserController {
         Long userId = getCurrentUserId();
         return userRepository.findById(userId)
             .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    }
+
+    @PutMapping("/users/password")
+    public ResponseEntity<String> updatePassword(@RequestBody UpdatePasswordRequest request) {
+        Long userId = getCurrentUserId(); // 이전에 만든 메서드 사용
+        userService.updatePassword(userId, request);
+        return ResponseEntity.ok("비밀번호가 변경되었습니다.");
     }
 }

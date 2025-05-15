@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.example.bank.dto.request.ChangePasswordRequest;
 import org.example.bank.dto.request.ChangeRoleRequest;
+import org.example.bank.dto.request.UpdatePasswordRequest;
 import org.example.bank.dto.request.UserRequest;
 import org.example.bank.dto.response.UserDetailResponse;
 import org.example.bank.dto.response.UserResponse;
@@ -14,6 +15,7 @@ import org.example.bank.entity.Role;
 import org.example.bank.entity.User;
 import org.example.bank.repository.UserRepository;
 import org.example.bank.util.JwtTokenProvider;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -99,6 +101,21 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Long userId) {
-        userRepository.deleteById(userId);
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
+
+        userRepository.delete(user);
+    }
+
+    public void updatePassword(Long userId, UpdatePasswordRequest request) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
     }
 }
