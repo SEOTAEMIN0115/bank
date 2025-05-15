@@ -5,6 +5,7 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import org.example.bank.common.OperationResult;
+import org.example.bank.dto.request.CloseAccountRequest;
 import org.example.bank.dto.request.CreateAccountRequest;
 import org.example.bank.dto.request.DepositRequest;
 import org.example.bank.dto.request.TransferRequest;
@@ -109,5 +110,18 @@ public class AccountController {
         User user = getCurrentUser();
         List<TransactionResponse> responses = accountService.filterTransactions(accountId, user.getId(), type, startDate, endDate);
         return ResponseEntity.ok(responses);
+    }
+
+    @PostMapping("/close")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> closeAccount(@RequestBody CloseAccountRequest request) {
+        Long userId = getCurrentUserId();
+        OperationResult result = accountService.closeAccount(request.getAccountId(), userId);
+        return buildResponse(result);
+    }
+
+    private Long getCurrentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return (Long) auth.getPrincipal();
     }
 }

@@ -197,4 +197,21 @@ public class AccountService {
         List<Transaction> filtered = transactionRepository.findByFilters(accountId, type, start, end);
         return filtered.stream().map(TransactionResponse::from).toList();
     }
+
+    @Transactional
+    public OperationResult closeAccount(Long accountId, Long userId) {
+        Account account = accountRepository.findById(accountId)
+            .orElseThrow(() -> new IllegalArgumentException("계좌를 찾을 수 없습니다."));
+
+        if (!account.getUser().getId().equals(userId)) {
+            return OperationResult.fail("계좌 소유자가 아닙니다.");
+        }
+
+        if (account.getBalance() > 0) {
+            return OperationResult.fail("잔액이 남아있는 계좌는 해지할 수 없습니다.");
+        }
+
+        account.deactivate();
+        return OperationResult.ok("계좌가 성공적으로 해지되었습니다.");
+    }
 }
