@@ -39,6 +39,8 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true , fetch = FetchType.LAZY)
     private List<Account> accounts = new ArrayList<>();
 
+    private boolean isActive = true;
+
     // 기존 생성자
     public User(String username, String password, String name) {
         this.username = username;
@@ -89,5 +91,13 @@ public class User implements UserDetails {
 
     public void setPassword(String newPassword) {
         this.password = newPassword;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void deactivate() {
+        this.isActive = false;
     }
 }

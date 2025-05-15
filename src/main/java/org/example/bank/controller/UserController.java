@@ -2,6 +2,7 @@ package org.example.bank.controller;
 
 import java.util.List;
 
+import org.example.bank.common.OperationResult;
 import org.example.bank.dto.request.ChangePasswordRequest;
 import org.example.bank.dto.request.ChangeRoleRequest;
 import org.example.bank.dto.request.LoginRequest;
@@ -128,5 +129,21 @@ public class UserController {
         Long userId = getCurrentUserId(); // 이전에 만든 메서드 사용
         userService.updatePassword(userId, request);
         return ResponseEntity.ok("비밀번호가 변경되었습니다.");
+    }
+
+    @PostMapping("/users/deactivate")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> deactivateUser() {
+        Long userId = getCurrentUserId();
+        OperationResult result = userService.deactivateUser(userId);
+        return buildResponse(result);
+    }
+
+    private ResponseEntity<?> buildResponse(OperationResult result) {
+        if (result.isSuccess()) {
+            return ResponseEntity.ok(result.getMessage());
+        } else {
+            return ResponseEntity.badRequest().body(result.getMessage());
+        }
     }
 }

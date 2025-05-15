@@ -214,4 +214,21 @@ public class AccountService {
         account.deactivate();
         return OperationResult.ok("계좌가 성공적으로 해지되었습니다.");
     }
+
+    @Transactional
+    public OperationResult deleteAccount(Long accountId, Long userId) {
+        Account account = accountRepository.findById(accountId)
+            .orElse(null);
+
+        if (account == null) {
+            return OperationResult.fail("계좌가 존재하지 않습니다.");
+        }
+
+        if (!account.getUser().getId().equals(userId)) {
+            return OperationResult.fail("본인 계좌만 삭제할 수 있습니다.");
+        }
+
+        accountRepository.delete(account);
+        return OperationResult.ok("계좌가 성공적으로 삭제되었습니다.");
+    }
 }
