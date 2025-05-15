@@ -8,10 +8,12 @@ import org.example.bank.common.OperationResult;
 import org.example.bank.dto.request.CloseAccountRequest;
 import org.example.bank.dto.request.CreateAccountRequest;
 import org.example.bank.dto.request.DepositRequest;
+import org.example.bank.dto.request.PasswordCheckRequest;
 import org.example.bank.dto.request.TransferRequest;
 import org.example.bank.dto.request.UpdateAccountPasswordRequest;
 import org.example.bank.dto.request.WithdrawRequest;
 import org.example.bank.dto.response.AccountResponse;
+import org.example.bank.dto.response.PasswordCheckResponse;
 import org.example.bank.dto.response.TransactionResponse;
 import org.example.bank.entity.User;
 import org.example.bank.service.AccountService;
@@ -143,5 +145,11 @@ public class AccountController {
         Long userId = (Long) authentication.getPrincipal();
         accountService.updatePassword(accountId, request.getPassword(), userId);
         return ResponseEntity.ok("비밀번호가 성공적으로 변경되었습니다.");
+    }
+
+    @PostMapping("/accounts/check-password")
+    public ResponseEntity<PasswordCheckResponse> checkPassword(@RequestBody PasswordCheckRequest request) {
+        boolean matched = accountService.checkPassword(request.getAccountNumber(), request.getPassword());
+        return ResponseEntity.ok(new PasswordCheckResponse(matched));
     }
 }

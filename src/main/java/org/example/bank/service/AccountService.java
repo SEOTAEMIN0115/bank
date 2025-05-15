@@ -247,4 +247,11 @@ public class AccountService {
         String encodedPassword = passwordEncoder.encode(password);
         account.setPassword(encodedPassword);
     }
+
+    public boolean checkPassword(String accountNumber, String password) {
+        Account account = accountRepository.findByAccountNumber(accountNumber)
+            .orElseThrow(() -> new IllegalArgumentException("계좌를 찾을 수 없습니다."));
+
+        return account.getPassword().equals(password);
+    }
 }
